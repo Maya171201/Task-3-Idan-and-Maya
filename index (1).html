@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMDb Rating Predictor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      width: 100%;
+      max-width: 540px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #e94560, #c0392b);
+      padding: 32px 36px 24px;
+      color: #fff;
+    }
+
+    .card-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .card-header p {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    .card-body {
+      padding: 32px 36px 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input {
+      padding: 10px 12px;
+      border: 1.5px solid #dde1e9;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #222;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input:focus { border-color: #e94560; }
+
+    .hint {
+      font-weight: 400;
+      color: #999;
+      font-size: 0.72rem;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .field-error {
+      font-size: 0.8rem;
+      color: #b91c1c;
+      margin-top: 4px;
+    }
+
+    .genre-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .genre-tag {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid #e94560;
+      color: #e94560;
+      background: #fff;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+
+    .genre-tag:hover  { background: #fef2f4; }
+    .genre-tag.active { background: #e94560; color: #fff; }
+
+    input.invalid { border-color: #e94560 !important; }
+
+    .btn {
+      margin-top: 24px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #e94560, #c0392b);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover  { opacity: 0.92; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    #result-box {
+      margin-top: 24px;
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+
+    #result-box.success {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      color: #166534;
+      font-size: 1.25rem;
+    }
+
+    #result-box.error {
+      background: #fff1f2;
+      border: 1.5px solid #fca5a5;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <h1>🎬 IMDb Rating Predictor</h1>
+      <p>Enter movie details below to predict its IMDb rating</p>
+    </div>
+
+    <div class="card-body">
+      <form id="predict-form">
+        <div class="grid">
+
+          <div class="field">
+            <label for="startYear">Release Year <span class="hint">(1895–2024)</span></label>
+            <input id="startYear" name="startYear" type="number" placeholder="e.g. 2015" min="1895" max="2024" required />
+          </div>
+
+          <div class="field">
+            <label for="runtimeMinutes">Runtime (min) <span class="hint">(60–300)</span></label>
+            <input id="runtimeMinutes" name="runtimeMinutes" type="number" placeholder="e.g. 120" min="60" max="300" required />
+          </div>
+
+          <div class="field">
+            <label for="num_actors">Number of Actors <span class="hint">(1–5)</span></label>
+            <input id="num_actors" name="num_actors" type="number" placeholder="e.g. 5" min="1" max="5" required />
+          </div>
+
+          <div class="field">
+            <label for="num_genres">Number of Genres <span class="hint">(1–5)</span></label>
+            <input id="num_genres" name="num_genres" type="number" placeholder="e.g. 2" min="1" max="5" required />
+          </div>
+
+          <div class="field full">
+            <label for="genres">Genres <span class="hint">(comma-separated)</span></label>
+            <input id="genres" name="genres" type="text" placeholder="e.g. Drama,Comedy,Action" required />
+            <div id="genres-error" class="field-error" style="display:none;"></div>
+            <div class="genre-tags" id="genre-tags"></div>
+          </div>
+
+          <div class="field full">
+            <label for="Language">Language <span class="hint">(full name)</span></label>
+            <input id="Language" name="Language" type="text" placeholder="e.g. English" required />
+            <div id="language-error" class="field-error" style="display:none;"></div>
+            <div class="genre-tags" id="language-tags"></div>
+          </div>
+
+          <div class="field full">
+            <label for="Country">Country <span class="hint">(full name)</span></label>
+            <input id="Country" name="Country" type="text" placeholder="e.g. United States" required />
+            <div id="country-error" class="field-error" style="display:none;"></div>
+            <div class="genre-tags" id="country-tags"></div>
+          </div>
+
+        </div>
+
+        <button class="btn" type="submit" id="predict-btn">Predict Rating</button>
+      </form>
+
+      <div id="result-box"></div>
+    </div>
+  </div>
+
+  <script>
+    const VALID_COUNTRIES = [
+      'United States','United Kingdom','France','Germany','Italy','Spain',
+      'Canada','Australia','Japan','China','India','South Korea','Russia',
+      'Brazil','Mexico','Argentina','Sweden','Denmark','Norway','Finland',
+      'Netherlands','Belgium','Switzerland','Austria','Poland','Czech Republic',
+      'Hungary','Romania','Greece','Turkey','Israel','Iran','Egypt',
+      'South Africa','Nigeria','Kenya','Morocco','New Zealand','Ireland',
+      'Portugal','Hong Kong','Taiwan','Singapore','Thailand','Indonesia',
+      'Malaysia','Philippines','Vietnam','Pakistan','Bangladesh','Ukraine',
+      'Soviet Union','East Germany','West Germany','Yugoslavia','Czechoslovakia',
+      'Chile','Colombia','Peru','Venezuela','Cuba','Iceland','Luxembourg',
+      'Malta','Cyprus','Croatia','Serbia','Slovakia','Slovenia','Bulgaria',
+      'Lithuania','Latvia','Estonia','Albania','Kosovo','Montenegro',
+      'Georgia','Armenia','Azerbaijan','Kazakhstan','Uzbekistan','Afghanistan',
+      'Iraq','Syria','Lebanon','Jordan','Saudi Arabia','United Arab Emirates',
+      'Qatar','Kuwait','Bahrain','Oman','Yemen','Sudan','Ethiopia','Ghana',
+      'Senegal','Cameroon','Angola','Mozambique','Zimbabwe','Zambia',
+      'Tanzania','Uganda','Rwanda','Madagascar','Algeria','Tunisia','Libya'
+    ];
+
+    const VALID_LANGUAGES = [
+      'Afrikaans','Albanian','Amharic','Arabic','Armenian','Azerbaijani',
+      'Basque','Belarusian','Bengali','Bosnian','Bulgarian','Burmese',
+      'Cantonese','Catalan','Croatian','Czech','Danish','Dutch',
+      'English','Estonian','Finnish','Filipino','French','Galician',
+      'Georgian','German','Greek','Gujarati','Hausa','Hebrew',
+      'Hindi','Hungarian','Icelandic','Indonesian','Irish','Italian',
+      'Japanese','Javanese','Kannada','Kazakh','Khmer','Korean',
+      'Kurdish','Kyrgyz','Lao','Latin','Latvian','Lithuanian',
+      'Macedonian','Malay','Malayalam','Maltese','Mandarin','Maori',
+      'Marathi','Mongolian','Nepali','Norwegian','Odia','Pashto',
+      'Persian','Polish','Portuguese','Punjabi','Romanian','Russian',
+      'Sanskrit','Serbian','Sinhala','Slovak','Slovenian','Somali',
+      'Spanish','Swahili','Swedish','Tagalog','Tajik','Tamil',
+      'Telugu','Thai','Tibetan','Turkish','Turkmen','Ukrainian',
+      'Urdu','Uzbek','Vietnamese','Welsh','Yiddish','Yoruba',
+      'Zulu','Serbo-Croatian','Hokkien','Silent','Esperanto','Scots'
+    ];
+
+    const VALID_GENRES = [
+      'Action','Adventure','Animation','Biography','Comedy','Crime',
+      'Documentary','Drama','Family','Fantasy','Film-Noir','History',
+      'Horror','Music','Musical','Mystery','Romance','Sci-Fi',
+      'Short','Sport','Thriller','War','Western'
+    ];
+
+    // Build clickable genre tag buttons
+    const tagsContainer = document.getElementById('genre-tags');
+    const genreInput    = document.getElementById('genres');
+    const genreError    = document.getElementById('genres-error');
+
+    function getSelected() {
+      return genreInput.value.split(',').map(g => g.trim()).filter(Boolean);
+    }
+
+    function updateInput(selected) {
+      genreInput.value = selected.join(',');
+      renderTags(selected);
+      validateGenres();
+    }
+
+    function renderTags(selected) {
+      tagsContainer.querySelectorAll('.genre-tag').forEach(tag => {
+        tag.classList.toggle('active', selected.includes(tag.dataset.genre));
+      });
+    }
+
+    VALID_GENRES.forEach(genre => {
+      const tag = document.createElement('span');
+      tag.className    = 'genre-tag';
+      tag.textContent  = genre;
+      tag.dataset.genre = genre;
+      tag.addEventListener('click', () => {
+        const selected = getSelected();
+        const idx = selected.indexOf(genre);
+        if (idx === -1) selected.push(genre);
+        else selected.splice(idx, 1);
+        updateInput(selected);
+      });
+      tagsContainer.appendChild(tag);
+    });
+
+    function validateGenres() {
+      const entered = getSelected();
+      const invalid = entered.filter(g => !VALID_GENRES.includes(g));
+      if (invalid.length > 0) {
+        genreError.textContent = `Invalid genre(s): ${invalid.join(', ')}. Please use the buttons above or valid IMDb genres.`;
+        genreError.style.display = 'block';
+        genreInput.classList.add('invalid');
+        return false;
+      }
+      genreError.style.display = 'none';
+      genreInput.classList.remove('invalid');
+      return true;
+    }
+
+    genreInput.addEventListener('input', () => {
+      renderTags(getSelected());
+      validateGenres();
+    });
+
+    // ── Language tags & validation ───────────────────────────────
+    const langContainer = document.getElementById('language-tags');
+    const langInput     = document.getElementById('Language');
+    const langError     = document.getElementById('language-error');
+
+    // Common languages shown as quick-select tags (most frequent in movies)
+    const COMMON_LANGUAGES = [
+      'English','Spanish','French','German','Italian','Portuguese',
+      'Mandarin','Japanese','Korean','Hindi','Arabic','Russian',
+      'Turkish','Polish','Dutch','Swedish','Danish','Norwegian',
+      'Hebrew','Greek','Persian','Thai','Vietnamese','Indonesian'
+    ];
+
+    function validateLanguage() {
+      const val = langInput.value.trim();
+      if (!val) return true;
+      if (!VALID_LANGUAGES.includes(val)) {
+        langError.textContent = `"${val}" is not a recognised language. Pick one from the list below or type the full English name.`;
+        langError.style.display = 'block';
+        langInput.classList.add('invalid');
+        return false;
+      }
+      langError.style.display = 'none';
+      langInput.classList.remove('invalid');
+      return true;
+    }
+
+    function renderLangTags() {
+      langContainer.querySelectorAll('.genre-tag').forEach(tag => {
+        tag.classList.toggle('active', tag.dataset.lang === langInput.value.trim());
+      });
+    }
+
+    COMMON_LANGUAGES.forEach(lang => {
+      const tag = document.createElement('span');
+      tag.className   = 'genre-tag';
+      tag.textContent = lang;
+      tag.dataset.lang = lang;
+      tag.addEventListener('click', () => {
+        langInput.value = tag.dataset.lang;
+        renderLangTags();
+        validateLanguage();
+      });
+      langContainer.appendChild(tag);
+    });
+
+    langInput.addEventListener('input', () => {
+      renderLangTags();
+      validateLanguage();
+    });
+
+    // ── Country tags & validation ────────────────────────────────
+    const countryContainer = document.getElementById('country-tags');
+    const countryInput     = document.getElementById('Country');
+    const countryError     = document.getElementById('country-error');
+
+    const COMMON_COUNTRIES = [
+      'United States','United Kingdom','France','Germany','Italy','Spain',
+      'Canada','Australia','Japan','India','South Korea','China',
+      'Brazil','Mexico','Russia','Sweden','Israel','Ireland','New Zealand'
+    ];
+
+    function validateCountry() {
+      const val = countryInput.value.trim();
+      if (!val) return true;
+      if (!VALID_COUNTRIES.includes(val)) {
+        countryError.textContent = `"${val}" is not a recognised country. Pick one from the list below or type the full English name.`;
+        countryError.style.display = 'block';
+        countryInput.classList.add('invalid');
+        return false;
+      }
+      countryError.style.display = 'none';
+      countryInput.classList.remove('invalid');
+      return true;
+    }
+
+    function renderCountryTags() {
+      countryContainer.querySelectorAll('.genre-tag').forEach(tag => {
+        tag.classList.toggle('active', tag.dataset.country === countryInput.value.trim());
+      });
+    }
+
+    COMMON_COUNTRIES.forEach(country => {
+      const tag = document.createElement('span');
+      tag.className      = 'genre-tag';
+      tag.textContent    = country;
+      tag.dataset.country = country;
+      tag.addEventListener('click', () => {
+        countryInput.value = tag.dataset.country;
+        renderCountryTags();
+        validateCountry();
+      });
+      countryContainer.appendChild(tag);
+    });
+
+    countryInput.addEventListener('input', () => {
+      renderCountryTags();
+      validateCountry();
+    });
+
+    // ── Form submit ──────────────────────────────────────────────
+    const form      = document.getElementById('predict-form');
+    const resultBox = document.getElementById('result-box');
+    const btn       = document.getElementById('predict-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!validateGenres() | !validateLanguage() | !validateCountry()) return;
+
+      resultBox.style.display = 'none';
+      resultBox.className     = '';
+      btn.disabled            = true;
+      btn.textContent         = 'Predicting…';
+
+      const payload = {
+        startYear:      document.getElementById('startYear').value,
+        runtimeMinutes: document.getElementById('runtimeMinutes').value,
+        num_actors:     document.getElementById('num_actors').value,
+        num_genres:     document.getElementById('num_genres').value,
+        genres:         genreInput.value.trim(),
+        Language:       document.getElementById('Language').value.trim(),
+        Country:        document.getElementById('Country').value.trim(),
+      };
+
+      try {
+        const response = await fetch('/predict', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          resultBox.className   = 'success';
+          resultBox.textContent = `Predicted Rating: ${data.predicted_rating} / 10`;
+        } else {
+          resultBox.className   = 'error';
+          resultBox.textContent = `Error: ${data.error || 'Unexpected error from server.'}`;
+        }
+      } catch (err) {
+        resultBox.className   = 'error';
+        resultBox.textContent = 'Could not connect to the server. Make sure api.py is running.';
+      } finally {
+        resultBox.style.display = 'block';
+        btn.disabled            = false;
+        btn.textContent         = 'Predict Rating';
+      }
+    });
+  </script>
+</body>
+</html>
