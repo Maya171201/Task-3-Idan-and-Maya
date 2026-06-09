@@ -2,7 +2,7 @@ import json
 
 import joblib
 import pandas as pd
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, render_template
 
 # MultiLabelTopN must be importable as __main__.MultiLabelTopN for pickle to restore the model.
 from assets_data_prep import MultiLabelTopN, prepare_data  # noqa: F401
@@ -18,7 +18,7 @@ NUMERIC_FIELDS  = ["startYear", "runtimeMinutes", "num_actors", "num_genres"]
 
 @app.route("/")
 def index():
-    return send_from_directory(".", "index.html")
+    return render_template("index.html")
 
 
 @app.route("/predict", methods=["POST"])
