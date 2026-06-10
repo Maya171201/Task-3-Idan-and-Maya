@@ -1,79 +1,68 @@
-# IMDb Movie Rating Predictor
+# אפליקציית חיזוי דירוג סרטים
 
-A web app that predicts a movie's IMDb rating using a Machine Learning model trained in Part 2 of the project.
+בנינו אפליקציה המנבאת דירוג של סרט ב IMDb באמצעות מודל שאימנו במסגרת חלק 2 של הפרויקט.
 
-You fill in basic movie details → the app runs them through the model → you get a predicted rating between **0 and 10**.
-
----
-
-## Getting Started
-
-### 1. Clone the repository
-```bash
-git clone <your-repo-url>
-cd partthree_pred
-```
-
-### 2. Create a virtual environment
-```bash
-python -m venv venv
-```
-
-### 3. Activate it
-```bash
-# Windows
-venv\Scripts\activate
-
-# Mac / Linux
-source venv/bin/activate
-```
-
-### 4. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Run the app
-```bash
-python api.py
-```
-
-### 6. Open in browser
-```
-http://localhost:5000
-```
+תהליך העבודה: המשתמש מזין בטופס את פרטי הסרט שהם הפיצ'רים שבנינו בחלק 2 בעבודה (מצויינים במסודר בהמשך הקובץ)  והמערכת מריצה את הנתונים דרך המודל התוצאה היא שמתקבל חיזוי דירוג בין 0 ל10 באופן רציף (יכול להיות מספרים לא שלמים).
 
 ---
 
-## Input Fields
+## הוראות הרצה ותחילת עבודה
 
-| Field | Valid Values |
+### 1. שכפול המאגר (Clone) והורדת הקוד
+`git clone <your-repo-url>`
+`cd partthree_pred`
+
+### 2. יצירת סביבה וירטואלית (Virtual Environment)
+`python -m venv venv`
+
+### 3. הפעלת הסביבה הווירטואלית
+**עבור משתמשי Windows:**
+`venv\Scripts\activate`
+
+**עבור משתמשי Mac / Linux(מהשיעורים הבנו שיש לך Mac לכן היה לנו חשוב לציין גם את המקרה הזה ):**
+`source venv/bin/activate`
+
+### 4. התקנת החבילות והתלויות הנדרשות 
+`pip install -r requirements.txt`
+
+### 5. הרצת השרת ואפליקציית ה-Flask שבנינו
+`python api.py`
+
+### 6. גישה לאפליקציה בדפדפן
+לאחר שהשרת עלה בהצלחה, פתחו את הדפדפן ונכנסו לכתובת:
+`http://localhost:5000`
+
+---
+
+## שדות קלט וטווח ערכים צפוי
+
+| שם השדה | ערכים תקינים / טווח צפוי |
 |---|---|
-| Release Year | 1895 – 2024 |
-| Runtime (minutes) | 60 – 300 |
-| Number of Actors | 1 – 5 |
-| Number of Genres | 1 – 5 |
-| Genres | Pick from buttons (e.g. Drama, Comedy) |
-| Language | Full name (e.g. English, Hebrew) |
-| Country | Full name (e.g. United States, Israel) |
+| שנת יציאה (Release Year) | 1895 – 2024 |
+| זמן ריצה בדקות (Runtime) | 60 – 300 |
+| מספר שחקנים (Number of Actors) | 1 – 5 |
+| מספר ז'אנרים (Number of Genres) | 1 – 5 |
+| ז'אנרים (Genres) | בחירה מתוך כפתורים דינמיים (למשל: Drama, Comedy) |
+| שפה (Language) | שם השפה המלא באנגלית (למשל: English, Hebrew) |
+| מדינה (Country) | שם המדינה המלא באנגלית (למשל: United States, Israel) |
 
 ---
 
-## Project Files
+## מבנה קבצי הפרויקט
 
-| File | What it does |
+| שם הקובץ | תיאור ותפקיד במערכת |
 |---|---|
-| `api.py` | Flask backend — 2 endpoints (`/` and `/predict`) |
-| `index.html` | Web form the user interacts with |
-| `assets_data_prep.py` | `prepare_data()` function — copied from Part 2 |
-| `trained_model.pkl` | Trained Random Forest model from Part 2 (best-performing model) |
-| `requirements.txt` | All required Python packages |
+| `api.py` | צד השרת (Flask Backend) — מנהל את המערכת ומכיל 2 נקודות קצה (`/` לטעינת דף הבית ו-`/predict` לחיזוי) |
+| `index.html` | ממשק המשתמש (Frontend) — טופס ה-Web המעוצב איתו המשתמש מקיים אינטראקציה |
+| `assets_data_prep.py` | מכיל את פונקציית ההכנה ועיבוד הנתונים `prepare_data()` — הועתק ישירות מחלק 2 של הפרויקט |
+| `trained_model.pkl` | מודל ה-Random Forest המאומן מחלק 2 (המודל שנמצא כבעל הביצועים הטובים ביותר) |
+| `requirements.txt` | קובץ הגדרות המכיל את כל חבילות הפייתון והגרסאות המדויקות הנדרשות להרצה תקינה |
 
 ---
 
-## Team Members
+## חברי הצוות ושמות מגישי המטלה
 
-| Name | ID |
+| שם מלא | תעודת זהות |
 |---|---|
-|  |  |
-|  |  |
+| מאיה הלוי | [בגלל שהגיט ציבורי החלטנו להגיש את הת"ז רק בקובץ טקסט במודל] |
+| עידן וידר | [בגלל שהגיט ציבורי החלטנו להגיש את הת"ז רק בקובץ טקסט במודל] |
