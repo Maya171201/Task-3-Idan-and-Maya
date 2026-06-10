@@ -1,5 +1,4 @@
-# pip freeze – exact versions verified to work together
-# scikit-learn is pinned to 1.7.2 (the version the model was trained with — required for the model to load and predict correctly)
+# pip freeze 
 blinker==1.9.0
 click==8.3.1
 Flask==3.1.3
